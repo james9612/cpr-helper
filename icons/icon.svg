@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e1b4b" />
+      <stop offset="50%" stop-color="#0f172a" />
+      <stop offset="100%" stop-color="#020617" />
+    </linearGradient>
+    <linearGradient id="heartGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f43f5e" />
+      <stop offset="100%" stop-color="#dc2626" />
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fbbf24" />
+      <stop offset="100%" stop-color="#d97706" />
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="12" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Background rounded squircle -->
+  <rect x="24" y="24" width="464" height="464" rx="108" fill="url(#bgGrad)" stroke="#334155" stroke-width="6" />
+
+  <!-- Outer rhythmic wave circles -->
+  <circle cx="256" cy="256" r="190" fill="none" stroke="#ef4444" stroke-opacity="0.15" stroke-width="4" stroke-dasharray="10 14" />
+  <circle cx="256" cy="256" r="160" fill="none" stroke="#ef4444" stroke-opacity="0.25" stroke-width="3" />
+
+  <!-- Heart Base with glow -->
+  <path d="M256 390 C256 390 120 300 120 200 C120 150 160 115 210 115 C235 115 250 130 256 145 C262 130 277 115 302 115 C352 115 392 150 392 200 C392 300 256 390 256 390 Z" 
+        fill="url(#heartGrad)" filter="url(#glow)" />
+
+  <!-- ECG Pulse Rhythm Line -->
+  <path d="M140 256 L195 256 L215 210 L235 290 L260 170 L285 315 L305 235 L325 256 L372 256" 
+        fill="none" stroke="#ffffff" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" />
+
+  <!-- Lightning AED bolt badge -->
+  <circle cx="360" cy="150" r="42" fill="#0f172a" stroke="#fbbf24" stroke-width="4" />
+  <path d="M365 125 L345 152 L360 152 L355 175 L375 146 L360 146 Z" fill="url(#goldGrad)" />
+</svg>

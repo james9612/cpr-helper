@@ -1,0 +1,19 @@
+{
+  "name": "CPR Helper - 急救小助手",
+  "short_name": "CPR Helper",
+  "description": "NFC感應即開：CPR Helper 每分鐘110次CPR節拍器與AED圖解速查，離線可用。",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0b0f19",
+  "theme_color": "#ef4444",
+  "orientation": "portrait-primary",
+  "lang": "zh-TW",
+  "icons": [
+    {
+      "src": "./icons/icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
