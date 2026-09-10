@@ -12,20 +12,20 @@
   <link rel="apple-touch-icon" href="./icons/icon.svg">
   <link rel="manifest" href="./manifest.webmanifest">
   <title>CPR Helper - 110 BPM CPR 節拍器 & AED 圖解速查</title>
-  <link rel="stylesheet" href="./css/style.css?v=2.1">
+  <link rel="stylesheet" href="./css/style.css?v=2.4">
   <style>
     /* 防禦性關鍵樣式：防止 Service Worker 舊快取延遲時造成圖標巨大化或跑版 */
     .btn-icon { width: 18px !important; height: 18px !important; max-width: 18px !important; max-height: 18px !important; flex-shrink: 0 !important; fill: currentColor; }
-    .emergency-alert-banner { background: linear-gradient(135deg, rgba(239, 68, 68, 0.16) 0%, rgba(245, 158, 11, 0.12) 100%); border: 1.5px solid rgba(239, 68, 68, 0.4); border-radius: 14px; padding: 14px 16px; display: flex; flex-direction: column; gap: 12px; margin-bottom: 4px; box-shadow: 0 8px 24px -6px rgba(239, 68, 68, 0.25); }
+    .emergency-alert-banner { background: linear-gradient(135deg, rgba(239, 68, 68, 0.16) 0%, rgba(245, 158, 11, 0.12) 100%); border: 1.5px solid rgba(239, 68, 68, 0.4); border-radius: 14px; padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 8px 24px -6px rgba(239, 68, 68, 0.25); }
     .alert-banner-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
     .alert-header-left { display: flex; align-items: center; gap: 6px; }
     .alert-title-badge { font-size: 0.76rem; font-weight: 800; color: #fca5a5; background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); padding: 3px 8px; border-radius: 999px; }
     .voice-status-pill { display: flex; align-items: center; gap: 6px; font-size: 0.72rem; font-weight: 700; padding: 3px 10px; border-radius: 999px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.15); color: #94a3b8; }
     .voice-status-pill.playing { background: rgba(16, 185, 129, 0.2); border-color: rgba(52, 211, 153, 0.5); color: #34d399; }
-    .alert-content-box { background: rgba(10, 14, 23, 0.6); border: 1px solid rgba(255, 255, 255, 0.07); border-radius: 8px; padding: 10px 12px; font-size: 0.95rem; line-height: 1.45; color: #f1f5f9; }
+    .alert-content-box { background: rgba(10, 14, 23, 0.6); border: 1px solid rgba(255, 255, 255, 0.07); border-radius: 8px; padding: 9px 12px; font-size: 0.93rem; line-height: 1.45; color: #f1f5f9; }
     .alert-core-prompt strong { color: #fef08a; text-decoration: underline; text-underline-offset: 3px; }
     .alert-actions-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 10px; }
-    .alert-btn { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 11px 12px; border-radius: 8px; font-size: 0.92rem; font-weight: 800; cursor: pointer; text-decoration: none; border: none; }
+    .alert-btn { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 12px; border-radius: 8px; font-size: 0.90rem; font-weight: 800; cursor: pointer; text-decoration: none; border: none; }
     .btn-call-119 { background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); color: #ffffff !important; box-shadow: 0 4px 16px rgba(239, 68, 68, 0.45); }
     .btn-replay { background: rgba(255, 255, 255, 0.09); border: 1px solid rgba(255, 255, 255, 0.2); color: #e2e8f0; }
   </style>
@@ -106,8 +106,8 @@
         </div>
       </section>
       
-      <!-- 核心節奏視覺大圓盤 -->
-      <section class="metronome-card">
+      <!-- 核心節奏視覺大圓盤 (微縮尺寸以露出下方 AED) -->
+      <section class="metronome-card" id="cpr-section">
         <div class="cpr-visual-area">
           <div id="pulse-visualizer" class="pulse-ring-container">
             <div class="outer-glow-ring"></div>
@@ -149,7 +149,7 @@
       </section>
 
       <!-- 次區塊：AED 4 步驟圖解速查指南 (圖示為主、極簡文字) -->
-      <section class="aed-section">
+      <section class="aed-section" id="aed-section">
         <div class="section-title-bar">
           <span class="section-title-icon">⚡</span>
           <h2 class="section-title-text">AED 4 步驟圖解 (開、貼、插、電)</h2>
@@ -278,8 +278,8 @@
   <audio id="emergency-audio" src="./audio/alert_119_aed.mp3" preload="auto" playsinline webkit-playsinline></audio>
 
   <!-- 腳本 -->
-  <script src="./js/metronome.js?v=2.2"></script>
-  <script src="./js/app.js?v=2.2"></script>
-  <script src="./js/sw-register.js?v=2.2"></script>
+  <script src="./js/metronome.js?v=2.3"></script>
+  <script src="./js/app.js?v=2.3"></script>
+  <script src="./js/sw-register.js?v=2.3"></script>
 </body>
 </html>
