@@ -47,6 +47,48 @@
 
     <!-- 主區塊：CPR 110 BPM 節拍器 -->
     <main class="main-content">
+
+      <!-- 頂部緊急廣播與求救指引 (NFC 感應即響，叫叫CD 關鍵第一動) -->
+      <section class="emergency-alert-banner" id="emergency-banner">
+        <div class="alert-banner-header">
+          <div class="alert-header-left">
+            <span class="pulsing-siren">🚨</span>
+            <span class="alert-title-badge">緊急救護第一動</span>
+          </div>
+          <div id="voice-broadcast-status" class="voice-status-pill idle">
+            <span class="voice-wave-anim">
+              <span class="bar bar-1"></span>
+              <span class="bar bar-2"></span>
+              <span class="bar bar-3"></span>
+            </span>
+            <span id="voice-status-text">語音準備中</span>
+          </div>
+        </div>
+
+        <div class="alert-content-box">
+          <div class="alert-core-prompt">
+            意外狀況！立即撥打 <strong>119</strong> 求救，並請旁人協助拿取 <strong>AED</strong>！
+          </div>
+        </div>
+
+        <div class="alert-actions-grid">
+          <!-- 立即撥打 119 大按鈕 -->
+          <a href="tel:119" class="alert-btn btn-call-119" id="btn-call-119" title="立即撥打 119 救護車">
+            <svg viewBox="0 0 24 24" class="btn-icon">
+              <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
+            </svg>
+            <span>撥打 119</span>
+          </a>
+
+          <!-- 重播急救語音按鈕 -->
+          <button type="button" class="alert-btn btn-replay" id="btn-replay-voice" title="重播急救提醒語音">
+            <svg viewBox="0 0 24 24" class="btn-icon">
+              <path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/>
+            </svg>
+            <span id="replay-btn-label">重播語音</span>
+          </button>
+        </div>
+      </section>
       
       <!-- 核心節奏視覺大圓盤 -->
       <section class="metronome-card">
@@ -215,6 +257,23 @@
     </main>
 
   </div>
+
+  <!-- 瀏覽器 Autoplay 阻擋時之「一觸即響」遮罩 (點擊立即播放急救廣播並預熱音訊引擎) -->
+  <div id="tap-to-start-overlay" class="tap-overlay hidden">
+    <div class="tap-box">
+      <div class="tap-heart-pulse">
+        <svg viewBox="0 0 24 24">
+          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+        </svg>
+      </div>
+      <div class="tap-title">🚨 感應完成！輕觸螢幕</div>
+      <div class="tap-subtitle">立即播放急救語音廣播並啟動 110 BPM 節拍</div>
+      <div class="tap-action-pill">輕觸任意處開始</div>
+    </div>
+  </div>
+
+  <!-- 急救提醒音訊 (超輕量 32KB 離線快取高音質播報) -->
+  <audio id="emergency-audio" src="./audio/alert_119_aed.mp3" preload="auto" playsinline webkit-playsinline></audio>
 
   <!-- 腳本 -->
   <script src="./js/metronome.js"></script>

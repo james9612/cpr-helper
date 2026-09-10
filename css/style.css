@@ -208,6 +208,225 @@ body {
   gap: 18px;
 }
 
+/* ===================================================
+   頂部緊急廣播與求救指引橫幅
+   =================================================== */
+.emergency-alert-banner {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.16) 0%, rgba(245, 158, 11, 0.12) 100%);
+  border: 1.5px solid rgba(239, 68, 68, 0.4);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 8px 24px -6px rgba(239, 68, 68, 0.25);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  position: relative;
+  overflow: hidden;
+}
+
+.emergency-alert-banner::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #ef4444, #f59e0b, #ef4444);
+  background-size: 200% 100%;
+  animation: shimmerBorder 2.5s infinite linear;
+}
+
+@keyframes shimmerBorder {
+  0% { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+
+.alert-banner-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.alert-header-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pulsing-siren {
+  font-size: 1.15rem;
+  animation: sirenFlash 1.2s infinite ease-in-out;
+  display: inline-block;
+}
+
+@keyframes sirenFlash {
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 4px rgba(239, 68, 68, 0.6)); }
+  50% { transform: scale(1.18); filter: drop-shadow(0 0 12px rgba(239, 68, 68, 0.95)); }
+}
+
+.alert-title-badge {
+  font-size: 0.76rem;
+  font-weight: 800;
+  color: #fca5a5;
+  background: rgba(239, 68, 68, 0.2);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  padding: 3px 8px;
+  border-radius: 999px;
+  letter-spacing: 0.04em;
+}
+
+/* 語音播放波形狀態藥丸 */
+.voice-status-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 999px;
+  transition: all 0.2s ease;
+}
+
+.voice-status-pill.playing {
+  background: rgba(16, 185, 129, 0.2);
+  border: 1px solid rgba(52, 211, 153, 0.5);
+  color: #34d399;
+}
+
+.voice-status-pill.idle {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: var(--text-muted);
+}
+
+.voice-wave-anim {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 12px;
+}
+
+.voice-wave-anim .bar {
+  width: 2.5px;
+  background-color: currentColor;
+  border-radius: 1px;
+  transition: height 0.15s ease;
+}
+
+.voice-status-pill.playing .bar-1 {
+  animation: waveBar 0.6s infinite ease-in-out alternate;
+}
+.voice-status-pill.playing .bar-2 {
+  animation: waveBar 0.8s infinite ease-in-out alternate 0.15s;
+}
+.voice-status-pill.playing .bar-3 {
+  animation: waveBar 0.5s infinite ease-in-out alternate 0.3s;
+}
+
+.voice-status-pill.idle .bar {
+  height: 3px !important;
+}
+
+@keyframes waveBar {
+  0% { height: 3px; }
+  100% { height: 12px; }
+}
+
+.alert-content-box {
+  background: rgba(10, 14, 23, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+}
+
+.alert-core-prompt {
+  font-size: 0.95rem;
+  line-height: 1.45;
+  color: #f1f5f9;
+  font-weight: 500;
+}
+
+.alert-core-prompt strong {
+  color: #fef08a;
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: rgba(245, 158, 11, 0.6);
+}
+
+/* 操作按鈕網格 (撥打 119 與重播語音) */
+.alert-actions-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 10px;
+}
+
+.alert-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 0.92rem;
+  font-weight: 800;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.15s ease;
+  border: none;
+}
+
+.btn-call-119 {
+  background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 16px rgba(239, 68, 68, 0.45);
+}
+
+.btn-call-119:active {
+  transform: scale(0.97);
+  background: #991b1b;
+}
+
+.btn-replay {
+  background: rgba(255, 255, 255, 0.09);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #e2e8f0;
+}
+
+.btn-replay:active {
+  transform: scale(0.97);
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.btn-replay.active-playing {
+  border-color: #34d399;
+  color: #34d399;
+  background: rgba(16, 185, 129, 0.15);
+}
+
+.alert-btn .btn-icon {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+  flex-shrink: 0;
+}
+
+.tap-action-pill {
+  margin-top: 20px;
+  display: inline-block;
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: #ffffff;
+  font-size: 1rem;
+  font-weight: 800;
+  padding: 10px 24px;
+  border-radius: 999px;
+  box-shadow: 0 4px 20px var(--cpr-red-glow);
+  animation: heartThump 1s infinite alternate;
+}
+
 /* CPR 節拍器核心卡片 */
 .metronome-card {
   background: var(--bg-card);
@@ -593,4 +812,6 @@ body {
   from { opacity: 0; }
   to { opacity: 1; }
 }
+
+
 
