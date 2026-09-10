@@ -41,7 +41,7 @@ class CprMetronome {
     return this.audioCtx;
   }
 
-  // 播放清脆、穿透度極佳的雙音頻醫療 CPR 按壓提示音
+  // 播放清脆、高頻穿透度極佳的雙音頻醫療 CPR 按壓提示音 (高頻化與音量最大化)
   playNote(time) {
     if (this.isMuted || !this.audioCtx) return;
 
@@ -49,22 +49,22 @@ class CprMetronome {
     // 確保排程時間有效，永不落後當前時間
     const t = Math.max(time, ctx.currentTime);
 
-    // 主音頻：960Hz 三角波 (具備醫療儀器穿透力、音質飽滿)
+    // 主音頻：提升至 1350Hz 三角波 (具備強烈醫療儀器穿透力、高頻清晰、不沉悶)
     const oscMain = ctx.createOscillator();
     oscMain.type = 'triangle';
-    oscMain.frequency.setValueAtTime(960, t);
+    oscMain.frequency.setValueAtTime(1350, t);
 
-    // 高頻衝擊音：2400Hz 正弦波 (清脆金屬感 Click 聲，使手機喇叭音量最大化)
+    // 高頻衝擊音：提升至 3500Hz 正弦波 (清脆俐落金屬感 Click 聲，使手機微型揚聲器輸出響度最大化)
     const oscClick = ctx.createOscillator();
     oscClick.type = 'sine';
-    oscClick.frequency.setValueAtTime(2400, t);
+    oscClick.frequency.setValueAtTime(3500, t);
 
-    // 高頻音量封包
+    // 高頻音量封包 (最大化數位增益)
     const clickGain = ctx.createGain();
-    clickGain.gain.setValueAtTime(0.55, t);
+    clickGain.gain.setValueAtTime(0.7, t);
     clickGain.gain.exponentialRampToValueAtTime(0.001, t + 0.035);
 
-    // 總音量封包 (Attack 3ms 防爆音, 85ms 俐落收音)
+    // 總音量封包 (Attack 3ms 防爆音, 85ms 俐落收音，100% 滿載輸出)
     const mainGain = ctx.createGain();
     mainGain.gain.setValueAtTime(0.001, t);
     mainGain.gain.linearRampToValueAtTime(1.0, t + 0.003);

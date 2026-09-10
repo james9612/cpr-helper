@@ -274,26 +274,12 @@
 
   </div>
 
-  <!-- 瀏覽器 Autoplay 阻擋時之「一觸即響」遮罩 (點擊立即播放急救廣播並預熱音訊引擎) -->
-  <div id="tap-to-start-overlay" class="tap-overlay hidden">
-    <div class="tap-box">
-      <div class="tap-heart-pulse">
-        <svg viewBox="0 0 24 24">
-          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-        </svg>
-      </div>
-      <div class="tap-title">🚨 感應完成！輕觸螢幕</div>
-      <div class="tap-subtitle">立即播放急救語音廣播並啟動 110 BPM 節拍</div>
-      <div class="tap-action-pill">輕觸任意處開始</div>
-    </div>
-  </div>
-
   <!-- 急救提醒音訊 (超輕量 32KB 離線快取高音質播報) -->
   <audio id="emergency-audio" src="./audio/alert_119_aed.mp3" preload="auto" playsinline webkit-playsinline></audio>
 
   <!-- 腳本 -->
-  <script src="./js/metronome.js"></script>
-  <script src="./js/app.js"></script>
-  <script src="./js/sw-register.js"></script>
+  <script src="./js/metronome.js?v=2.2"></script>
+  <script src="./js/app.js?v=2.2"></script>
+  <script src="./js/sw-register.js?v=2.2"></script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'nfc-cpr-aed-v10';
+const CACHE_NAME = 'nfc-cpr-aed-v11';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
