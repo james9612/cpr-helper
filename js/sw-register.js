@@ -5,6 +5,10 @@
       navigator.serviceWorker.register('./sw.js')
         .then((reg) => {
           console.log('[PWA] Service Worker 註冊成功，範疇:', reg.scope);
+          // 主動檢查是否有新版本快取
+          if (reg.update) {
+            reg.update();
+          }
         })
         .catch((err) => {
           console.warn('[PWA] Service Worker 註冊失敗:', err);
