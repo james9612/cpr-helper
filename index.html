@@ -12,7 +12,7 @@
   <link rel="apple-touch-icon" href="./icons/icon.svg">
   <link rel="manifest" href="./manifest.webmanifest">
   <title>CPR Helper - 中華天使之翼救護訓練學會 ‧ 110 BPM 節拍器 & AED 速查</title>
-  <link rel="stylesheet" href="./css/style.css?v=2.8">
+  <link rel="stylesheet" href="./css/style.css?v=2.9">
   <style>
     /* 防禦性關鍵樣式：確保離線或快取延遲時保持深色主題、排版與防圖標巨大化 */
     :root {
@@ -51,11 +51,9 @@
   <!-- 全螢幕「一觸即響」急救啟動門 (解鎖 iOS & Android 音訊限制，0延遲即刻啟動) -->
   <div id="tap-overlay" class="tap-overlay" role="button" tabindex="0" aria-label="輕碰螢幕即刻啟動救援">
     <div class="tap-card">
-      <div class="tap-org-badge">
-        <svg viewBox="0 0 24 24" width="16" height="16" class="tap-org-icon">
-          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-        </svg>
-        <span>中華天使之翼救護訓練學會</span>
+      <div class="tap-org-header">
+        <img src="./images/org_emblem_trans.png" alt="中華天使之翼救護訓練學會 LOGO" class="tap-org-logo">
+        <h1 class="tap-org-name">中華天使之翼救護訓練學會</h1>
       </div>
 
       <div class="tap-pulse-wrapper">
@@ -69,7 +67,6 @@
       </div>
 
       <h2 class="tap-title">輕碰螢幕 ‧ 即刻救援</h2>
-      <p class="tap-subtitle">觸摸任意處，立即啟動 119 求救語音與 110 BPM 節拍</p>
 
       <div class="tap-prompt-pill">
         <span class="tap-touch-hand">👆</span>
@@ -86,9 +83,7 @@
     <header class="top-header">
       <div class="brand-badge">
         <div class="brand-icon" title="中華天使之翼救護訓練學會">
-          <svg viewBox="0 0 24 24" width="20" height="20" style="width:20px;height:20px;max-width:20px;max-height:20px;fill:#ffffff;">
-            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-          </svg>
+          <img src="./images/org_emblem_trans.png" alt="中華天使之翼 LOGO" class="header-logo-img">
         </div>
         <div class="brand-text-block">
           <div class="brand-org-name">中華天使之翼救護訓練學會</div>
@@ -321,9 +316,7 @@
         <div class="footer-org-card">
           <div class="footer-org-header">
             <div class="footer-org-icon-badge">
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="#ef4444">
-                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-              </svg>
+              <img src="./images/org_emblem_trans.png" alt="學會LOGO" class="footer-logo-img">
             </div>
             <span class="footer-org-name">中華天使之翼救護訓練學會</span>
           </div>
@@ -354,8 +347,8 @@
   </script>
 
   <!-- 腳本 -->
-  <script src="./js/metronome.js?v=2.8"></script>
-  <script src="./js/app.js?v=2.8"></script>
-  <script src="./js/sw-register.js?v=2.8"></script>
+  <script src="./js/metronome.js?v=2.9"></script>
+  <script src="./js/app.js?v=2.9"></script>
+  <script src="./js/sw-register.js?v=2.9"></script>
 </body>
 </html>

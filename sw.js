@@ -1,4 +1,4 @@
-const CACHE_NAME = 'nfc-cpr-aed-v17';
+const CACHE_NAME = 'nfc-cpr-aed-v18';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -8,6 +8,7 @@ const ASSETS_TO_CACHE = [
   './js/sw-register.js',
   './manifest.webmanifest',
   './icons/icon.svg',
+  './images/org_emblem_trans.png',
   './images/aed_pads_guide.png',
   './images/aed_pads_guide.jpg',
   './audio/alert_119_aed.mp3'
