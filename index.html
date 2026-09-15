@@ -12,7 +12,7 @@
   <link rel="apple-touch-icon" href="./icons/icon.svg">
   <link rel="manifest" href="./manifest.webmanifest">
   <title>CPR Helper - 中華天使之翼救護訓練學會 ‧ 110 BPM 節拍器 & AED 速查</title>
-  <link rel="stylesheet" href="./css/style.css?v=3.2">
+  <link rel="stylesheet" href="./css/style.css?v=3.3">
   <style>
     /* 防禦性關鍵樣式：確保離線或快取延遲時保持深色主題、排版與防圖標巨大化 */
     :root {
@@ -89,7 +89,6 @@
           <div class="brand-org-name">中華天使之翼救護訓練學會</div>
           <div class="brand-title-line">
             <h1 class="brand-title">CPR Helper</h1>
-            <span class="brand-sub-badge">110 BPM</span>
           </div>
         </div>
       </div>
@@ -185,12 +184,29 @@
           <div class="reminder-text">（每 2 分鐘換人按壓）</div>
         </div>
 
-        <!-- CPR 4 大口訣 -->
-        <div class="quick-mnemonic-row">
-          <div class="mnemonic-tag"><strong>用力壓</strong> 5~6cm</div>
-          <div class="mnemonic-tag"><strong>快快壓</strong> 100-120/分</div>
-          <div class="mnemonic-tag"><strong>胸回彈</strong> 完全放鬆</div>
-          <div class="mnemonic-tag"><strong>莫中斷</strong> &lt;10秒</div>
+        <!-- 高品質 CPR 4 大核心口訣 (字體加粗放大便於下跪施救辨識) -->
+        <div class="cpr-quality-box">
+          <div class="cpr-quality-header">
+            <span class="cpr-quality-title">❤️ 高品質 CPR 核心原則</span>
+          </div>
+          <div class="quick-mnemonic-row">
+            <div class="mnemonic-tag">
+              <strong class="mnemonic-lead">用力壓</strong>
+              <span class="mnemonic-val">5~6cm</span>
+            </div>
+            <div class="mnemonic-tag">
+              <strong class="mnemonic-lead">快快壓</strong>
+              <span class="mnemonic-val">100-120/分</span>
+            </div>
+            <div class="mnemonic-tag">
+              <strong class="mnemonic-lead">胸回彈</strong>
+              <span class="mnemonic-val">完全放鬆</span>
+            </div>
+            <div class="mnemonic-tag">
+              <strong class="mnemonic-lead">莫中斷</strong>
+              <span class="mnemonic-val">&lt;10秒</span>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -345,8 +361,8 @@
   </script>
 
   <!-- 腳本 -->
-  <script src="./js/metronome.js?v=3.2"></script>
-  <script src="./js/app.js?v=3.2"></script>
-  <script src="./js/sw-register.js?v=3.2"></script>
+  <script src="./js/metronome.js?v=3.3"></script>
+  <script src="./js/app.js?v=3.3"></script>
+  <script src="./js/sw-register.js?v=3.3"></script>
 </body>
 </html>

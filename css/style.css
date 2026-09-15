@@ -299,14 +299,14 @@ body {
 }
 
 .brand-org-name {
-  font-size: clamp(0.62rem, 2.7vw, 0.70rem);
-  font-weight: 700;
-  color: #cbd5e1;
+  font-size: clamp(0.92rem, 3.8vw, 1.06rem);
+  font-weight: 900;
+  color: #ffffff;
   letter-spacing: 0.02em;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  line-height: 1.2;
+  line-height: 1.25;
 }
 
 .brand-title-line {
@@ -317,23 +317,15 @@ body {
 }
 
 .brand-title {
-  font-size: 1.05rem;
-  font-weight: 800;
-  color: #ffffff;
-  letter-spacing: -0.01em;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: #94a3b8;
+  letter-spacing: 0.02em;
   margin: 0;
 }
 
 .brand-sub-badge {
-  font-size: 0.62rem;
-  font-weight: 800;
-  color: #ef4444;
-  background: rgba(239, 68, 68, 0.16);
-  border: 1px solid rgba(239, 68, 68, 0.35);
-  padding: 1px 6px;
-  border-radius: 999px;
-  letter-spacing: 0.02em;
-  white-space: nowrap;
+  display: none;
 }
 
 .header-status {
@@ -758,32 +750,69 @@ body {
   color: #f59e0b;
 }
 
-/* CPR 4 口訣標籤列 (緊湊四格) */
+/* 高品質 CPR 核心口訣卡片容器 (字體放大、強化對比) */
+.cpr-quality-box {
+  width: 100%;
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cpr-quality-header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 0 2px;
+}
+
+.cpr-quality-title {
+  font-size: 0.96rem;
+  font-weight: 900;
+  color: #fca5a5;
+  letter-spacing: 0.02em;
+}
+
+/* CPR 4 口訣標籤列 (緊湊四格，字體放大加粗) */
 .quick-mnemonic-row {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 5px;
+  gap: 6px;
   width: 100%;
-  margin-top: 8px;
 }
 
 .mnemonic-tag {
-  background: rgba(239, 68, 68, 0.08);
-  border: 1px solid rgba(239, 68, 68, 0.25);
+  background: rgba(239, 68, 68, 0.12);
+  border: 1.5px solid rgba(239, 68, 68, 0.35);
   border-radius: var(--radius-sm);
-  padding: 5px 2px;
+  padding: 8px 3px;
   text-align: center;
-  font-size: 0.67rem;
-  color: #cbd5e1;
-  white-space: nowrap;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  transition: transform 0.15s ease, border-color 0.15s;
+}
+
+.mnemonic-lead {
+  display: block;
+  color: #ffffff;
+  font-size: 0.96rem;
+  font-weight: 900;
+  line-height: 1.25;
+  margin-bottom: 2px;
   letter-spacing: -0.01em;
 }
 
-.mnemonic-tag strong {
+.mnemonic-val {
   display: block;
-  color: #ffffff;
-  font-size: 0.73rem;
-  margin-bottom: 2px;
+  color: #fca5a5;
+  font-size: 0.78rem;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
 }
 
 /* ===================================================
@@ -997,20 +1026,23 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 8px 18px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+  padding: 4px 0 6px 0;
+  background: none !important;
+  border: none !important;
+  border-radius: 0;
+  box-shadow: none !important;
   margin-bottom: 2px;
 }
 
 .footer-logo-prominent {
-  width: 100px;
+  width: 140px;
   height: auto;
-  max-height: 56px;
+  max-height: 80px;
   object-fit: contain;
-  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.45));
+  border: none !important;
+  background: none !important;
+  box-shadow: none !important;
+  filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.55));
 }
 
 .footer-org-name {
