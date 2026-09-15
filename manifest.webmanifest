@@ -1,7 +1,7 @@
 {
-  "name": "CPR Helper - 急救小助手",
+  "name": "CPR Helper - 中華天使之翼救護訓練學會",
   "short_name": "CPR Helper",
-  "description": "NFC感應即開：CPR Helper 每分鐘110次CPR節拍器與AED圖解速查，離線可用。",
+  "description": "中華天使之翼救護訓練學會：推動全民急救，守護珍貴生命。110 BPM CPR 節拍器與 AED 圖解速查。",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#0b0f19",

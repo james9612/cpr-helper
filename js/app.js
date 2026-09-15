@@ -115,7 +115,11 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!emergencyAudio) {
         return resolve();
       }
-      emergencyAudio.currentTime = 0;
+      try {
+        if (emergencyAudio.readyState > 0) {
+          emergencyAudio.currentTime = 0;
+        }
+      } catch (e) {}
       emergencyAudio.volume = 1.0;
       emergencyAudio.muted = metronome.isMuted;
 
@@ -133,11 +137,14 @@ document.addEventListener('DOMContentLoaded', () => {
       emergencyAudio.addEventListener('ended', onEnd);
       emergencyAudio.addEventListener('error', onErr);
 
-      emergencyAudio.play().catch((err) => {
-        emergencyAudio.removeEventListener('ended', onEnd);
-        emergencyAudio.removeEventListener('error', onErr);
-        reject(err);
-      });
+      const playPromise = emergencyAudio.play();
+      if (playPromise !== undefined) {
+        playPromise.catch((err) => {
+          emergencyAudio.removeEventListener('ended', onEnd);
+          emergencyAudio.removeEventListener('error', onErr);
+          reject(err);
+        });
+      }
     });
   }
 
@@ -170,30 +177,44 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 播放急救語音 (連續播報 2 次，不強制要求確認遮罩)
+  // 播放急救語音 (連續播報 2 次)
   async function playEmergencyBroadcastTwice() {
     if (isSpeaking) return;
+    isSpeaking = true;
 
-    for (let i = 1; i <= 2; i++) {
-      if (metronome.isMuted) break;
+    try {
+      for (let i = 1; i <= 2; i++) {
+        if (metronome.isMuted) break;
 
-      setVoiceUIState(true, `語音廣播中 (${i}/2)`);
-      try {
-        await playSingleAudioClip();
-      } catch (err) {
-        // 若被瀏覽器限制阻擋，拋給外層攔截
-        setVoiceUIState(false, '點擊播放');
-        throw err;
+        setVoiceUIState(true, `語音廣播中 (${i}/2)`);
+
+        // 若第 1 次且已由 HTML5 autoplay 成功直接發聲，接續等待其自然播畢
+        if (i === 1 && !emergencyAudio.paused && emergencyAudio.currentTime > 0 && !emergencyAudio.ended) {
+          await new Promise((resolve) => {
+            const onEnd = () => {
+              emergencyAudio.removeEventListener('ended', onEnd);
+              resolve();
+            };
+            emergencyAudio.addEventListener('ended', onEnd, { once: true });
+          });
+        } else {
+          await playSingleAudioClip();
+        }
+
+        // 第 1 次播完後停頓 0.6 秒再播第 2 次
+        if (i === 1 && !metronome.isMuted) {
+          await new Promise(r => setTimeout(r, 600));
+        }
       }
 
-      // 第 1 次播完後停頓 0.6 秒再播第 2 次
-      if (i === 1) {
-        await new Promise(r => setTimeout(r, 600));
-      }
+      hasCompletedAlert = true;
+      setVoiceUIState(false, '播報完畢');
+    } catch (err) {
+      setVoiceUIState(false, '語音待命中');
+      throw err;
+    } finally {
+      isSpeaking = false;
     }
-
-    hasCompletedAlert = true;
-    setVoiceUIState(false, '播報完畢');
   }
 
   // iOS 靜音模式破除器 (透過 playsinline audio 觸發 Playback Session)
@@ -203,20 +224,26 @@ document.addEventListener('DOMContentLoaded', () => {
   silentUnlockAudio.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
 
   function unlockAudioEngine() {
-    silentUnlockAudio.play().catch(() => {});
-    metronome.initAudio().catch(() => {});
+    try {
+      silentUnlockAudio.play().catch(() => {});
+    } catch (e) {}
+    try {
+      metronome.initAudio().catch(() => {});
+    } catch (e) {}
   }
 
-  // 任意觸碰預熱音訊引擎 (若瀏覽器因無互動阻擋，只要手指碰觸畫面任何位置立刻補播 2 次語音)
-  ['touchstart', 'touchend', 'mousedown', 'keydown'].forEach(evt => {
-    document.addEventListener(evt, () => {
-      unlockAudioEngine();
-      if (!hasCompletedAlert && !isSpeaking) {
-        playEmergencyBroadcastTwice().catch(() => {
-          speakFallbackTTS().catch(() => {});
-        });
-      }
-    }, { once: true, passive: true });
+  // 任意觸碰全局監聽：若瀏覽器因政策強行阻擋無互動音訊，手指碰觸畫面任何像素時立刻無縫補播
+  function handleAnyTouchInteraction() {
+    unlockAudioEngine();
+    if (!hasCompletedAlert && !isSpeaking) {
+      playEmergencyBroadcastTwice().catch(() => {
+        speakFallbackTTS().catch(() => {});
+      });
+    }
+  }
+
+  ['touchstart', 'touchend', 'pointerdown', 'mousedown', 'keydown'].forEach(evt => {
+    window.addEventListener(evt, handleAnyTouchInteraction, { passive: true });
   });
 
   // 點擊「重播急救語音」
@@ -287,12 +314,31 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // ==========================================
-  // 頁面載入瞬間：直接嘗試自動播放語音 2 次 (無遮罩)
+  // 頁面載入瞬間：零延遲直接嘗試自動播放急救語音 (無等待、無遮罩)
   // ==========================================
-  setTimeout(() => {
+  function triggerImmediateBroadcast() {
+    if (hasCompletedAlert || isSpeaking) return;
+    unlockAudioEngine();
     playEmergencyBroadcastTwice().catch(() => {
-      // 若受瀏覽器政策限制未放行，靜默等待使用者第一次觸碰畫面時自動發聲
+      // 若受嚴格瀏覽器政策暫時限制，靜默維持待命狀態，於使用者任意碰觸時立刻補播
     });
-  }, 100);
+  }
+
+  // 1. 同步立即觸發（不加 setTimeout，避免丟失使用者喚醒手勢）
+  triggerImmediateBroadcast();
+
+  // 2. window 載入完成時若尚未播報再次嘗試
+  window.addEventListener('load', () => {
+    if (!hasCompletedAlert && !isSpeaking) {
+      triggerImmediateBroadcast();
+    }
+  });
+
+  // 3. 頁面可見度切換（如從外部 NFC 應用跳轉喚起）
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && !hasCompletedAlert && !isSpeaking) {
+      triggerImmediateBroadcast();
+    }
+  });
 });
 

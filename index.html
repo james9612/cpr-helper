@@ -7,12 +7,12 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="CPR Helper">
-  <meta name="description" content="NFC感應即開：CPR Helper 每分鐘110次CPR節拍器與AED圖解速查。">
+  <meta name="description" content="中華天使之翼救護訓練學會：推動全民急救，守護珍貴生命。NFC 感應即開 110 BPM CPR 節拍器與 AED 圖解速查。">
   <link rel="icon" type="image/svg+xml" href="./icons/icon.svg">
   <link rel="apple-touch-icon" href="./icons/icon.svg">
   <link rel="manifest" href="./manifest.webmanifest">
-  <title>CPR Helper - 110 BPM CPR 節拍器 & AED 圖解速查</title>
-  <link rel="stylesheet" href="./css/style.css?v=2.5">
+  <title>CPR Helper - 中華天使之翼救護訓練學會 ‧ 110 BPM 節拍器 & AED 速查</title>
+  <link rel="stylesheet" href="./css/style.css?v=2.6">
   <style>
     /* 防禦性關鍵樣式：確保離線或快取延遲時保持深色主題、排版與防圖標巨大化 */
     :root {
@@ -27,7 +27,7 @@
       margin: 0;
       padding: 0;
     }
-    .brand-icon svg { width: 20px !important; height: 20px !important; max-width: 20px !important; max-height: 20px !important; fill: #ef4444 !important; }
+    .brand-icon svg { width: 20px !important; height: 20px !important; max-width: 20px !important; max-height: 20px !important; fill: #ffffff !important; }
     .heart-icon { width: 70px !important; height: 70px !important; max-width: 70px !important; max-height: 70px !important; fill: #ef4444 !important; }
     .icon-btn svg { width: 22px !important; height: 22px !important; fill: currentColor; }
     .main-toggle-btn svg { width: 20px !important; height: 20px !important; fill: currentColor; }
@@ -50,17 +50,20 @@
 
   <div class="app-container">
 
-    <!-- 頂部精簡列 -->
+    <!-- 頂部精簡列 (包含中華天使之翼救護訓練學會標識) -->
     <header class="top-header">
       <div class="brand-badge">
-        <div class="brand-icon">
-          <svg viewBox="0 0 24 24" width="20" height="20" style="width:20px;height:20px;max-width:20px;max-height:20px;fill:#ef4444;">
+        <div class="brand-icon" title="中華天使之翼救護訓練學會">
+          <svg viewBox="0 0 24 24" width="20" height="20" style="width:20px;height:20px;max-width:20px;max-height:20px;fill:#ffffff;">
             <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
           </svg>
         </div>
-        <div>
-          <h1 class="brand-title">CPR Helper</h1>
-          <span class="brand-sub">110 BPM 急救小助手</span>
+        <div class="brand-text-block">
+          <div class="brand-org-name">中華天使之翼救護訓練學會</div>
+          <div class="brand-title-line">
+            <h1 class="brand-title">CPR Helper</h1>
+            <span class="brand-sub-badge">110 BPM</span>
+          </div>
         </div>
       </div>
 
@@ -283,19 +286,44 @@
       </section>
 
       <footer class="app-footer">
-        <p>CPR Helper ‧ NFC 急救感應專用 ‧ 支援 100% 離線使用</p>
+        <div class="footer-org-card">
+          <div class="footer-org-header">
+            <div class="footer-org-icon-badge">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="#ef4444">
+                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+              </svg>
+            </div>
+            <span class="footer-org-name">中華天使之翼救護訓練學會</span>
+          </div>
+          <p class="footer-org-slogan">推動全民急救 ‧ 守護珍貴生命</p>
+          <div class="footer-divider"></div>
+          <p class="footer-tech-info">CPR Helper ‧ NFC 急救感應專用 ‧ 支援 100% 離線使用</p>
+        </div>
       </footer>
 
     </main>
 
   </div>
 
-  <!-- 急救提醒音訊 (超輕量 32KB 離線快取高音質播報) -->
-  <audio id="emergency-audio" src="./audio/alert_119_aed.mp3" preload="auto" playsinline webkit-playsinline></audio>
+  <!-- 急救提醒音訊 (超輕量 32KB 離線快取高音質播報，支援進入網頁即刻自動播放) -->
+  <audio id="emergency-audio" src="./audio/alert_119_aed.mp3" autoplay preload="auto" playsinline webkit-playsinline></audio>
+  <script>
+    // 進入網頁第一時間以最高優先級同步嘗試直接播放（零延遲）
+    (function() {
+      try {
+        var a = document.getElementById('emergency-audio');
+        if (a) {
+          a.volume = 1.0;
+          var p = a.play();
+          if (p && p.catch) { p.catch(function() {}); }
+        }
+      } catch (e) {}
+    })();
+  </script>
 
   <!-- 腳本 -->
-  <script src="./js/metronome.js?v=2.5"></script>
-  <script src="./js/app.js?v=2.5"></script>
-  <script src="./js/sw-register.js?v=2.5"></script>
+  <script src="./js/metronome.js?v=2.7"></script>
+  <script src="./js/app.js?v=2.7"></script>
+  <script src="./js/sw-register.js?v=2.7"></script>
 </body>
 </html>
