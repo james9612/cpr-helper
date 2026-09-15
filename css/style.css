@@ -52,59 +52,188 @@ body {
   background-attachment: fixed;
 }
 
-/* 一觸即響全螢幕遮罩 (相容手機限制未點擊前禁止發聲之機制) */
+/* 一觸即響全螢幕急救啟動門 (解鎖 iOS & Android 音訊限制，0延遲即刻啟動) */
 .tap-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(11, 15, 25, 0.95);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  background: radial-gradient(circle at 50% 38%, rgba(239, 68, 68, 0.28) 0%, rgba(10, 14, 23, 0.96) 65%, #050811 100%);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 999;
+  z-index: 99999;
   cursor: pointer;
-  animation: fadeIn 0.2s ease-out;
+  padding: 24px;
+  touch-action: manipulation;
+  transition: opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1), transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: fadeInOverlay 0.2s ease-out;
 }
 
-.tap-box {
+@keyframes fadeInOverlay {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.tap-overlay.fade-out {
+  opacity: 0;
+  transform: scale(1.04);
+  pointer-events: none;
+}
+
+.tap-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   text-align: center;
-  padding: 24px;
+  max-width: 380px;
+  width: 100%;
+  gap: 14px;
+}
+
+.tap-org-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: #f1f5f9;
+  letter-spacing: 0.03em;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.tap-org-icon {
+  width: 16px;
+  height: 16px;
+  fill: #ef4444;
+  flex-shrink: 0;
+}
+
+/* 呼吸與聲波環 (110 BPM 動態節奏) */
+.tap-pulse-wrapper {
+  position: relative;
+  width: 136px;
+  height: 136px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 10px 0;
+}
+
+.tap-sonar-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid rgba(239, 68, 68, 0.6);
+  animation: sonarWave 1.6s cubic-bezier(0.1, 0.8, 0.3, 1) infinite;
+}
+
+.tap-sonar-ring.ring-2 {
+  animation-delay: 0.8s;
+}
+
+@keyframes sonarWave {
+  0% {
+    transform: scale(0.7);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(1.65);
+    opacity: 0;
+  }
 }
 
 .tap-heart-pulse {
-  width: 90px;
-  height: 90px;
-  margin: 0 auto 16px;
+  width: 98px;
+  height: 98px;
   border-radius: 50%;
-  background: rgba(239, 68, 68, 0.2);
+  background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  animation: heartThump 1s infinite alternate;
+  box-shadow: 0 0 35px rgba(239, 68, 68, 0.65), inset 0 0 16px rgba(255, 255, 255, 0.3);
+  animation: heartThump110BPM 0.545s ease-in-out infinite alternate;
+  position: relative;
+  z-index: 2;
 }
 
-.tap-heart-pulse svg {
-  width: 50px;
-  height: 50px;
-  fill: #ef4444;
-  filter: drop-shadow(0 0 12px var(--cpr-red-glow));
+.tap-heart-svg {
+  width: 52px;
+  height: 52px;
+  fill: #ffffff;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.4));
 }
 
-@keyframes heartThump {
-  from { transform: scale(0.92); opacity: 0.8; }
-  to { transform: scale(1.1); opacity: 1; }
+@keyframes heartThump110BPM {
+  0% {
+    transform: scale(0.92);
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.45);
+  }
+  100% {
+    transform: scale(1.08);
+    box-shadow: 0 0 45px rgba(239, 68, 68, 0.85);
+  }
 }
 
 .tap-title {
-  font-size: 1.4rem;
-  font-weight: 800;
+  font-size: 1.55rem;
+  font-weight: 900;
   color: #ffffff;
+  letter-spacing: 0.02em;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
+  line-height: 1.2;
 }
 
 .tap-subtitle {
-  font-size: 0.9rem;
+  font-size: 0.90rem;
   color: #cbd5e1;
+  line-height: 1.5;
+  max-width: 320px;
+  margin: 0 auto;
+}
+
+.tap-prompt-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.25) 0%, rgba(245, 158, 11, 0.2) 100%);
+  border: 1.5px solid rgba(239, 68, 68, 0.5);
+  padding: 10px 22px;
+  border-radius: 999px;
+  font-size: 0.96rem;
+  font-weight: 800;
+  color: #fef08a;
+  box-shadow: 0 4px 20px rgba(239, 68, 68, 0.3);
+  animation: pulsePrompt 1.4s ease-in-out infinite alternate;
+  margin-top: 4px;
+}
+
+@keyframes pulsePrompt {
+  0% { transform: translateY(0); opacity: 0.92; }
+  100% { transform: translateY(-3px); opacity: 1; border-color: rgba(245, 158, 11, 0.85); }
+}
+
+.tap-touch-hand {
+  font-size: 1.2rem;
+  animation: tapHandBounce 1s infinite alternate;
+}
+
+@keyframes tapHandBounce {
+  0% { transform: translateY(2px); }
+  100% { transform: translateY(-2px); }
+}
+
+.tap-slogan {
+  font-size: 0.78rem;
+  color: #94a3b8;
+  letter-spacing: 0.05em;
   margin-top: 6px;
 }
 

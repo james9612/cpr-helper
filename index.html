@@ -12,7 +12,7 @@
   <link rel="apple-touch-icon" href="./icons/icon.svg">
   <link rel="manifest" href="./manifest.webmanifest">
   <title>CPR Helper - 中華天使之翼救護訓練學會 ‧ 110 BPM 節拍器 & AED 速查</title>
-  <link rel="stylesheet" href="./css/style.css?v=2.6">
+  <link rel="stylesheet" href="./css/style.css?v=2.8">
   <style>
     /* 防禦性關鍵樣式：確保離線或快取延遲時保持深色主題、排版與防圖標巨大化 */
     :root {
@@ -47,6 +47,38 @@
   </style>
 </head>
 <body>
+
+  <!-- 全螢幕「一觸即響」急救啟動門 (解鎖 iOS & Android 音訊限制，0延遲即刻啟動) -->
+  <div id="tap-overlay" class="tap-overlay" role="button" tabindex="0" aria-label="輕碰螢幕即刻啟動救援">
+    <div class="tap-card">
+      <div class="tap-org-badge">
+        <svg viewBox="0 0 24 24" width="16" height="16" class="tap-org-icon">
+          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+        </svg>
+        <span>中華天使之翼救護訓練學會</span>
+      </div>
+
+      <div class="tap-pulse-wrapper">
+        <div class="tap-sonar-ring ring-1"></div>
+        <div class="tap-sonar-ring ring-2"></div>
+        <div class="tap-heart-pulse">
+          <svg viewBox="0 0 24 24" width="52" height="52" class="tap-heart-svg">
+            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+          </svg>
+        </div>
+      </div>
+
+      <h2 class="tap-title">輕碰螢幕 ‧ 即刻救援</h2>
+      <p class="tap-subtitle">觸摸任意處，立即啟動 119 求救語音與 110 BPM 節拍</p>
+
+      <div class="tap-prompt-pill">
+        <span class="tap-touch-hand">👆</span>
+        <span>點擊螢幕任何位置啟動</span>
+      </div>
+
+      <div class="tap-slogan">推動全民急救 ‧ 守護珍貴生命</div>
+    </div>
+  </div>
 
   <div class="app-container">
 
@@ -322,8 +354,8 @@
   </script>
 
   <!-- 腳本 -->
-  <script src="./js/metronome.js?v=2.7"></script>
-  <script src="./js/app.js?v=2.7"></script>
-  <script src="./js/sw-register.js?v=2.7"></script>
+  <script src="./js/metronome.js?v=2.8"></script>
+  <script src="./js/app.js?v=2.8"></script>
+  <script src="./js/sw-register.js?v=2.8"></script>
 </body>
 </html>

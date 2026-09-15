@@ -232,7 +232,48 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (e) {}
   }
 
-  // 任意觸碰全局監聽：若瀏覽器因政策強行阻擋無互動音訊，手指碰觸畫面任何像素時立刻無縫補播
+  // ==========================================
+  // 一觸即響全螢幕急救啟動門 (Tap-to-Start Emergency Gate)
+  // 使用者碰觸螢幕任何位置，立即以最高權限手勢啟動語音並解除遮罩
+  // ==========================================
+  const tapOverlay = document.getElementById('tap-overlay');
+  let isOverlayDismissed = false;
+
+  function dismissTapOverlayAndStart() {
+    if (isOverlayDismissed) return;
+    isOverlayDismissed = true;
+
+    // 1. 同步毫秒級解鎖 Web Audio & HTML5 Audio
+    unlockAudioEngine();
+
+    // 2. 立即以本次手勢直通發聲（100% 符合 iOS/Android 手勢規範，保證大聲出聲）
+    playEmergencyBroadcastTwice().catch(() => {
+      speakFallbackTTS().catch(() => {});
+    });
+
+    // 3. 遮罩平滑微縮淡出
+    if (tapOverlay) {
+      tapOverlay.classList.add('fade-out');
+      setTimeout(() => {
+        tapOverlay.style.display = 'none';
+      }, 220);
+    }
+  }
+
+  if (tapOverlay) {
+    tapOverlay.addEventListener('click', dismissTapOverlayAndStart);
+    tapOverlay.addEventListener('touchend', dismissTapOverlayAndStart, { passive: true });
+    tapOverlay.addEventListener('pointerup', dismissTapOverlayAndStart, { passive: true });
+
+    // 若在已授權環境中早已自動出聲，遮罩自動在 300ms 內平滑退場
+    setTimeout(() => {
+      if (emergencyAudio && !emergencyAudio.paused && emergencyAudio.currentTime > 0) {
+        dismissTapOverlayAndStart();
+      }
+    }, 300);
+  }
+
+  // 任意觸碰全局監聽：雙重保險
   function handleAnyTouchInteraction() {
     unlockAudioEngine();
     if (!hasCompletedAlert && !isSpeaking) {
