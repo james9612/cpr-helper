@@ -80,8 +80,60 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ==========================================
-  // 緊急語音廣播控制器 (自動輪播 2 次)
+  // 緊急語音廣播控制器 (自動輪播 2 次) - Web Audio API + HTML5 雙軌架構
   // ==========================================
+
+  let emergencyAudioBuffer = null;
+  let currentVoiceSource = null;
+  let isDecodingBuffer = false;
+
+  // 預先抓取音訊 ArrayBuffer，加快解碼就緒速度
+  fetch('./audio/alert_119_aed.mp3')
+    .then(r => r.arrayBuffer())
+    .then(buf => {
+      window._cachedEmergencyArrayBuffer = buf;
+    })
+    .catch(() => {});
+
+  async function loadAndDecodeEmergencyAudio() {
+    if (emergencyAudioBuffer) return emergencyAudioBuffer;
+    if (isDecodingBuffer) {
+      let attempts = 0;
+      while (isDecodingBuffer && attempts < 20) {
+        await new Promise(r => setTimeout(r, 50));
+        attempts++;
+      }
+      return emergencyAudioBuffer;
+    }
+    isDecodingBuffer = true;
+    try {
+      const audioCtx = await metronome.initAudio();
+      if (!audioCtx) return null;
+      let arrayBuf = window._cachedEmergencyArrayBuffer;
+      if (!arrayBuf) {
+        const res = await fetch('./audio/alert_119_aed.mp3');
+        arrayBuf = await res.arrayBuffer();
+        window._cachedEmergencyArrayBuffer = arrayBuf;
+      }
+      // decodeAudioData 在各瀏覽器中完美相容 Promise 與 Callback
+      emergencyAudioBuffer = await new Promise((resolve, reject) => {
+        try {
+          const promise = audioCtx.decodeAudioData(arrayBuf.slice(0), resolve, reject);
+          if (promise && typeof promise.then === 'function') {
+            promise.then(resolve).catch(reject);
+          }
+        } catch (e) {
+          reject(e);
+        }
+      });
+      return emergencyAudioBuffer;
+    } catch (e) {
+      console.warn('Web Audio 解碼備援:', e);
+      return null;
+    } finally {
+      isDecodingBuffer = false;
+    }
+  }
 
   function setVoiceUIState(speaking, text) {
     isSpeaking = speaking;
@@ -109,8 +161,61 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // 單次播放音訊 Promise
-  function playSingleAudioClip() {
+  // 軌道 1: Web Audio API 原生緩衝發聲 (無 Range 請求問題、無 Android MediaPlayer 焦點衝突、零延遲)
+  function playAudioBufferClip() {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const audioCtx = await metronome.initAudio();
+        if (!audioCtx) return reject(new Error('AudioContext 不可用'));
+        if (audioCtx.state === 'suspended') {
+          await audioCtx.resume();
+        }
+
+        let buffer = emergencyAudioBuffer;
+        if (!buffer) {
+          buffer = await loadAndDecodeEmergencyAudio();
+        }
+        if (!buffer) {
+          return reject(new Error('無法載入 AudioBuffer'));
+        }
+
+        const source = audioCtx.createBufferSource();
+        source.buffer = buffer;
+
+        const gainNode = audioCtx.createGain();
+        gainNode.gain.value = metronome.isMuted ? 0 : 1.0;
+
+        source.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+
+        let settled = false;
+        source.onended = () => {
+          if (!settled) {
+            settled = true;
+            if (currentVoiceSource === source) currentVoiceSource = null;
+            resolve();
+          }
+        };
+
+        currentVoiceSource = source;
+        source.start(0);
+
+        // 防禦性安全超時
+        setTimeout(() => {
+          if (!settled) {
+            settled = true;
+            if (currentVoiceSource === source) currentVoiceSource = null;
+            resolve();
+          }
+        }, Math.ceil(buffer.duration * 1000) + 300);
+      } catch (err) {
+        reject(err);
+      }
+    });
+  }
+
+  // 軌道 2: HTML5 Audio 標籤播放 Promise
+  function playHtml5AudioClip() {
     return new Promise((resolve, reject) => {
       if (!emergencyAudio) {
         return resolve();
@@ -123,15 +228,22 @@ document.addEventListener('DOMContentLoaded', () => {
       emergencyAudio.volume = 1.0;
       emergencyAudio.muted = metronome.isMuted;
 
+      let settled = false;
       const onEnd = () => {
-        emergencyAudio.removeEventListener('ended', onEnd);
-        emergencyAudio.removeEventListener('error', onErr);
-        resolve();
+        if (!settled) {
+          settled = true;
+          emergencyAudio.removeEventListener('ended', onEnd);
+          emergencyAudio.removeEventListener('error', onErr);
+          resolve();
+        }
       };
       const onErr = (e) => {
-        emergencyAudio.removeEventListener('ended', onEnd);
-        emergencyAudio.removeEventListener('error', onErr);
-        resolve(); // 出錯時安全退出
+        if (!settled) {
+          settled = true;
+          emergencyAudio.removeEventListener('ended', onEnd);
+          emergencyAudio.removeEventListener('error', onErr);
+          reject(e);
+        }
       };
 
       emergencyAudio.addEventListener('ended', onEnd);
@@ -140,12 +252,36 @@ document.addEventListener('DOMContentLoaded', () => {
       const playPromise = emergencyAudio.play();
       if (playPromise !== undefined) {
         playPromise.catch((err) => {
-          emergencyAudio.removeEventListener('ended', onEnd);
-          emergencyAudio.removeEventListener('error', onErr);
-          reject(err);
+          if (!settled) {
+            settled = true;
+            emergencyAudio.removeEventListener('ended', onEnd);
+            emergencyAudio.removeEventListener('error', onErr);
+            reject(err);
+          }
         });
       }
+
+      // 防禦性超時防卡住
+      setTimeout(() => {
+        if (!settled) {
+          settled = true;
+          emergencyAudio.removeEventListener('ended', onEnd);
+          emergencyAudio.removeEventListener('error', onErr);
+          resolve();
+        }
+      }, 4500);
     });
+  }
+
+  // 單次播放音訊 Promise (雙軌自動回退：Web Audio -> HTML5 Audio)
+  async function playSingleAudioClip() {
+    try {
+      await playAudioBufferClip();
+      return;
+    } catch (e) {
+      console.warn('Web Audio 播放失敗，回退至 HTML5 Audio:', e);
+    }
+    await playHtml5AudioClip();
   }
 
   // Web Speech API 離線備援朗讀
@@ -191,18 +327,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         setVoiceUIState(true, `語音廣播中 (${i}/2)`);
 
-        // 若第 1 次且已由 HTML5 autoplay 成功直接發聲，接續等待其自然播畢
-        if (i === 1 && !emergencyAudio.paused && emergencyAudio.currentTime > 0 && !emergencyAudio.ended) {
-          await new Promise((resolve) => {
-            const onEnd = () => {
-              emergencyAudio.removeEventListener('ended', onEnd);
-              resolve();
-            };
-            emergencyAudio.addEventListener('ended', onEnd, { once: true });
-          });
-        } else {
-          await playSingleAudioClip();
-        }
+        await playSingleAudioClip();
 
         // 播畢後再次確認節拍器是否在播放期間被啟動
         if (metronome.isRunning) break;
@@ -226,15 +351,20 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // iOS 靜音模式破除器 (透過 playsinline audio 觸發 Playback Session)
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   const silentUnlockAudio = document.createElement('audio');
   silentUnlockAudio.setAttribute('playsinline', '');
   silentUnlockAudio.setAttribute('webkit-playsinline', '');
   silentUnlockAudio.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
 
   function unlockAudioEngine() {
-    try {
-      silentUnlockAudio.play().catch(() => {});
-    } catch (e) {}
+    // 僅在 iOS 上啟用 silentUnlockAudio 以破除實體靜音開關
+    // Android 上切勿執行，避免 Android MediaPlayer 焦點搶奪導致主語音被消音
+    if (isIOS) {
+      try {
+        silentUnlockAudio.play().catch(() => {});
+      } catch (e) {}
+    }
     try {
       metronome.initAudio().catch(() => {});
     } catch (e) {}
@@ -249,26 +379,22 @@ document.addEventListener('DOMContentLoaded', () => {
   let overlayDismissedAt = 0; // 記錄遮罩解除時間戳，用於冷卻時間防穿透
 
   function dismissTapOverlayAndStart(e) {
-    if (e) {
-      if (e.cancelable) e.preventDefault();
-      e.stopPropagation();
-    }
     if (isOverlayDismissed) return;
     isOverlayDismissed = true;
     overlayDismissedAt = Date.now();
 
-    // 解除遮罩後，立即解綁全域觸控監聽，避免後續一般觸控持續重複觸發音訊邏輯
-    removeGlobalTouchListeners();
+    // 解除遮罩後，解綁全局手勢監聽
+    removeActivationListeners();
 
-    // 1. 同步毫秒級解鎖 Web Audio & HTML5 Audio
+    // 1. 同步毫秒級解鎖 Web Audio & HTML5 Audio (在合法 User Activation 呼叫棧內)
     unlockAudioEngine();
 
-    // 2. 立即以本次手勢直通發聲（100% 符合 iOS/Android 手勢規範，保證大聲出聲）
+    // 2. 立即以本次合法手勢直通發聲（100% 符合 iOS & Android 手勢規範）
     playEmergencyBroadcastTwice().catch(() => {
       speakFallbackTTS().catch(() => {});
     });
 
-    // 3. 遮罩平滑微縮淡出（淡出期間持續吸收後續事件，延遲 260ms 後真正關閉 display）
+    // 3. 遮罩平滑微縮淡出
     if (tapOverlay) {
       tapOverlay.classList.add('fade-out');
       setTimeout(() => {
@@ -277,46 +403,54 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  if (tapOverlay) {
-    tapOverlay.addEventListener('click', dismissTapOverlayAndStart);
-    tapOverlay.addEventListener('touchend', dismissTapOverlayAndStart, { passive: false });
-    tapOverlay.addEventListener('pointerup', dismissTapOverlayAndStart, { passive: false });
+  // 僅綁定合法的 User Activation 事件：click, touchend, keydown
+  // 嚴禁使用 touchstart 或 pointerdown，因為 Android Chrome 政策認定 touchstart 不屬於使用者授權手勢，呼叫 play() 會直接被阻擋
+  const activationEvents = ['click', 'touchend', 'keydown'];
 
-    // 若在已授權環境中早已自動出聲，遮罩自動在 300ms 內平滑退場
-    setTimeout(() => {
-      if (emergencyAudio && !emergencyAudio.paused && emergencyAudio.currentTime > 0) {
-        dismissTapOverlayAndStart();
-      }
-    }, 300);
-  }
-
-  // 任意觸碰全局監聽：雙重保險
-  function handleAnyTouchInteraction(e) {
-    unlockAudioEngine();
+  function handleActivationInteraction(e) {
     if (!isOverlayDismissed) {
       dismissTapOverlayAndStart(e);
       return;
     }
     if (!hasCompletedAlert && !isSpeaking && !metronome.isRunning) {
+      unlockAudioEngine();
       playEmergencyBroadcastTwice().catch(() => {
         speakFallbackTTS().catch(() => {});
       });
     }
   }
 
-  const globalTouchEvents = ['touchstart', 'touchend', 'pointerdown', 'mousedown', 'keydown'];
-  function removeGlobalTouchListeners() {
-    globalTouchEvents.forEach(evt => {
-      window.removeEventListener(evt, handleAnyTouchInteraction);
+  function removeActivationListeners() {
+    activationEvents.forEach(evt => {
+      window.removeEventListener(evt, handleActivationInteraction);
     });
   }
 
-  globalTouchEvents.forEach(evt => {
-    window.addEventListener(evt, handleAnyTouchInteraction, { passive: true });
+  if (tapOverlay) {
+    tapOverlay.addEventListener('click', dismissTapOverlayAndStart);
+    tapOverlay.addEventListener('touchend', dismissTapOverlayAndStart);
+
+    // 若在已授權環境中早已自動出聲，遮罩自動在 300ms 內平滑退場
+    setTimeout(() => {
+      if ((emergencyAudio && !emergencyAudio.paused && emergencyAudio.currentTime > 0) || isSpeaking) {
+        dismissTapOverlayAndStart();
+      }
+    }, 300);
+  }
+
+  activationEvents.forEach(evt => {
+    window.addEventListener(evt, handleActivationInteraction);
   });
 
   // 強制停止急救廣播語音（當施救者手動啟動 CPR 節拍器時）
   function stopEmergencyBroadcast() {
+    if (currentVoiceSource) {
+      try {
+        currentVoiceSource.stop(0);
+        currentVoiceSource.disconnect();
+      } catch (e) {}
+      currentVoiceSource = null;
+    }
     if (emergencyAudio) {
       try {
         emergencyAudio.pause();

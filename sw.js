@@ -1,4 +1,4 @@
-const CACHE_NAME = 'nfc-cpr-aed-v23';
+const CACHE_NAME = 'nfc-cpr-aed-v24';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -65,6 +65,32 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(event.request, { ignoreSearch: true }).then((cachedResponse) => {
       if (cachedResponse) {
+        // 行動裝置 (Android Chrome / Safari) 播放音訊時常發送 Range 請求，需切片回傳 206 Partial Content
+        const rangeHeader = event.request.headers.get('range');
+        if (rangeHeader) {
+          return cachedResponse.arrayBuffer().then((buffer) => {
+            const bytesMatch = rangeHeader.match(/bytes=(\d+)-(\d*)/);
+            if (bytesMatch) {
+              const start = parseInt(bytesMatch[1], 10);
+              const end = bytesMatch[2] ? parseInt(bytesMatch[2], 10) : buffer.byteLength - 1;
+              const sliced = buffer.slice(start, end + 1);
+              const headers = new Headers(cachedResponse.headers);
+              headers.set('Content-Range', `bytes ${start}-${end}/${buffer.byteLength}`);
+              headers.set('Content-Length', String(sliced.byteLength));
+              headers.set('Accept-Ranges', 'bytes');
+              if (!headers.has('Content-Type')) {
+                headers.set('Content-Type', 'audio/mpeg');
+              }
+              return new Response(sliced, {
+                status: 206,
+                statusText: 'Partial Content',
+                headers: headers
+              });
+            }
+            return cachedResponse;
+          });
+        }
+
         // 快取命中：立即返回本地快取，背景嘗試非同步更新（有網路時）
         fetch(event.request)
           .then((networkResponse) => {
