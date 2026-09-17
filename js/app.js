@@ -180,11 +180,14 @@ document.addEventListener('DOMContentLoaded', () => {
   // 播放急救語音 (連續播報 2 次)
   async function playEmergencyBroadcastTwice() {
     if (isSpeaking) return;
+    // 若節拍器已在運行中，絕不搶播語音
+    if (metronome.isRunning) return;
     isSpeaking = true;
 
     try {
       for (let i = 1; i <= 2; i++) {
-        if (metronome.isMuted) break;
+        // 若已靜音或節拍器被手動啟動，立刻中斷廣播
+        if (metronome.isMuted || metronome.isRunning) break;
 
         setVoiceUIState(true, `語音廣播中 (${i}/2)`);
 
@@ -201,14 +204,19 @@ document.addEventListener('DOMContentLoaded', () => {
           await playSingleAudioClip();
         }
 
+        // 播畢後再次確認節拍器是否在播放期間被啟動
+        if (metronome.isRunning) break;
+
         // 第 1 次播完後停頓 0.6 秒再播第 2 次
-        if (i === 1 && !metronome.isMuted) {
+        if (i === 1 && !metronome.isMuted && !metronome.isRunning) {
           await new Promise(r => setTimeout(r, 600));
         }
       }
 
-      hasCompletedAlert = true;
-      setVoiceUIState(false, '播報完畢');
+      if (!metronome.isRunning) {
+        hasCompletedAlert = true;
+        setVoiceUIState(false, '播報完畢');
+      }
     } catch (err) {
       setVoiceUIState(false, '語音待命中');
       throw err;
@@ -238,10 +246,19 @@ document.addEventListener('DOMContentLoaded', () => {
   // ==========================================
   const tapOverlay = document.getElementById('tap-overlay');
   let isOverlayDismissed = false;
+  let overlayDismissedAt = 0; // 記錄遮罩解除時間戳，用於冷卻時間防穿透
 
-  function dismissTapOverlayAndStart() {
+  function dismissTapOverlayAndStart(e) {
+    if (e) {
+      if (e.cancelable) e.preventDefault();
+      e.stopPropagation();
+    }
     if (isOverlayDismissed) return;
     isOverlayDismissed = true;
+    overlayDismissedAt = Date.now();
+
+    // 解除遮罩後，立即解綁全域觸控監聽，避免後續一般觸控持續重複觸發音訊邏輯
+    removeGlobalTouchListeners();
 
     // 1. 同步毫秒級解鎖 Web Audio & HTML5 Audio
     unlockAudioEngine();
@@ -251,19 +268,19 @@ document.addEventListener('DOMContentLoaded', () => {
       speakFallbackTTS().catch(() => {});
     });
 
-    // 3. 遮罩平滑微縮淡出
+    // 3. 遮罩平滑微縮淡出（淡出期間持續吸收後續事件，延遲 260ms 後真正關閉 display）
     if (tapOverlay) {
       tapOverlay.classList.add('fade-out');
       setTimeout(() => {
         tapOverlay.style.display = 'none';
-      }, 220);
+      }, 260);
     }
   }
 
   if (tapOverlay) {
     tapOverlay.addEventListener('click', dismissTapOverlayAndStart);
-    tapOverlay.addEventListener('touchend', dismissTapOverlayAndStart, { passive: true });
-    tapOverlay.addEventListener('pointerup', dismissTapOverlayAndStart, { passive: true });
+    tapOverlay.addEventListener('touchend', dismissTapOverlayAndStart, { passive: false });
+    tapOverlay.addEventListener('pointerup', dismissTapOverlayAndStart, { passive: false });
 
     // 若在已授權環境中早已自動出聲，遮罩自動在 300ms 內平滑退場
     setTimeout(() => {
@@ -274,24 +291,58 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // 任意觸碰全局監聽：雙重保險
-  function handleAnyTouchInteraction() {
+  function handleAnyTouchInteraction(e) {
     unlockAudioEngine();
-    if (!hasCompletedAlert && !isSpeaking) {
+    if (!isOverlayDismissed) {
+      dismissTapOverlayAndStart(e);
+      return;
+    }
+    if (!hasCompletedAlert && !isSpeaking && !metronome.isRunning) {
       playEmergencyBroadcastTwice().catch(() => {
         speakFallbackTTS().catch(() => {});
       });
     }
   }
 
-  ['touchstart', 'touchend', 'pointerdown', 'mousedown', 'keydown'].forEach(evt => {
+  const globalTouchEvents = ['touchstart', 'touchend', 'pointerdown', 'mousedown', 'keydown'];
+  function removeGlobalTouchListeners() {
+    globalTouchEvents.forEach(evt => {
+      window.removeEventListener(evt, handleAnyTouchInteraction);
+    });
+  }
+
+  globalTouchEvents.forEach(evt => {
     window.addEventListener(evt, handleAnyTouchInteraction, { passive: true });
   });
+
+  // 強制停止急救廣播語音（當施救者手動啟動 CPR 節拍器時）
+  function stopEmergencyBroadcast() {
+    if (emergencyAudio) {
+      try {
+        emergencyAudio.pause();
+        emergencyAudio.currentTime = 0;
+      } catch (e) {}
+    }
+    if ('speechSynthesis' in window) {
+      try {
+        window.speechSynthesis.cancel();
+      } catch (e) {}
+    }
+    isSpeaking = false;
+    hasCompletedAlert = true;
+    setVoiceUIState(false, '已切換至 CPR 按壓');
+  }
 
   // 點擊「重播急救語音」
   if (replayVoiceBtn) {
     replayVoiceBtn.addEventListener('click', async (e) => {
       e.stopPropagation();
       unlockAudioEngine();
+      // 若節拍器正在運作，先暫停節拍器，讓語音清晰傳達
+      if (metronome.isRunning) {
+        metronome.stop();
+        updatePlayPauseUI(false);
+      }
       try {
         await playEmergencyBroadcastTwice();
       } catch (err) {
@@ -303,14 +354,23 @@ document.addEventListener('DOMContentLoaded', () => {
   // 統一節拍器播放 / 暫停控制 (保持純手動開啟，絕不自動搶跑)
   async function toggleMetronomeState(e) {
     if (e) {
+      if (e.cancelable) e.preventDefault();
       e.stopPropagation();
     }
+
+    // 防穿透點擊與誤觸保護：若距離關閉第一畫面遮罩不到 800ms，徹底忽略本次點擊
+    if (Date.now() - overlayDismissedAt < 800) {
+      return;
+    }
+
     unlockAudioEngine();
 
     if (metronome.isRunning) {
       metronome.stop();
       updatePlayPauseUI(false);
     } else {
+      // 啟動節拍器時，若急救廣播語音仍在播放，立即強制停止語音，確保節拍音頻清晰無干擾
+      stopEmergencyBroadcast();
       await metronome.start();
       updatePlayPauseUI(true);
     }

@@ -80,7 +80,7 @@ body {
 .tap-overlay.fade-out {
   opacity: 0;
   transform: scale(1.04);
-  pointer-events: none;
+  /* 移除 pointer-events: none，讓遮罩在 260ms 淡出期間持續吸收後續幽靈點擊，直到 display: none 徹底移除 */
 }
 
 .tap-card {
