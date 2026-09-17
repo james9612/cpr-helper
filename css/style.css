@@ -66,10 +66,15 @@ body {
   justify-content: center;
   z-index: 99999;
   cursor: pointer;
-  padding: 24px;
+  padding: max(24px, env(safe-area-inset-top, 24px)) 24px max(24px, env(safe-area-inset-bottom, 24px));
   touch-action: manipulation;
   transition: opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1), transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
   animation: fadeInOverlay 0.2s ease-out;
+}
+
+.tap-overlay:active .tap-card {
+  transform: scale(0.97);
+  transition: transform 0.1s ease;
 }
 
 @keyframes fadeInOverlay {
@@ -242,13 +247,15 @@ body {
   width: 100%;
   max-width: 480px;
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
+  padding-bottom: max(16px, env(safe-area-inset-bottom, 16px));
 }
 
 /* 頂部導航狀態列 */
 .top-header {
-  padding: 12px 18px;
+  padding: max(12px, env(safe-area-inset-top, 12px)) 18px 12px;
   display: flex;
   align-items: center;
   justify-content: space-between;

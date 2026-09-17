@@ -86,6 +86,16 @@ document.addEventListener('DOMContentLoaded', () => {
   let emergencyAudioBuffer = null;
   let currentVoiceSource = null;
   let isDecodingBuffer = false;
+  let voiceGainNode = null;
+
+  function getVoiceGainNode(ctx) {
+    if (!voiceGainNode && ctx) {
+      voiceGainNode = ctx.createGain();
+      voiceGainNode.gain.value = metronome.isMuted ? 0 : 1.0;
+      voiceGainNode.connect(ctx.destination);
+    }
+    return voiceGainNode;
+  }
 
   // 預先抓取並在背景預解碼音訊 ArrayBuffer，加快點擊就緒速度（不發聲）
   fetch('./audio/alert_119_aed.mp3')
@@ -192,11 +202,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const source = audioCtx.createBufferSource();
         source.buffer = buffer;
 
-        const gainNode = audioCtx.createGain();
-        gainNode.gain.value = metronome.isMuted ? 0 : 1.0;
-
+        const gainNode = getVoiceGainNode(audioCtx);
         source.connect(gainNode);
-        gainNode.connect(audioCtx.destination);
 
         let settled = false;
         source.onended = () => {
@@ -360,19 +367,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // iOS 靜音模式破除器 (透過 playsinline audio 觸發 Playback Session)
+  // iOS 靜音模式破除器 (透過 playsinline 循環靜音音訊鎖定 AVAudioSession Media Category)
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   const silentUnlockAudio = document.createElement('audio');
   silentUnlockAudio.setAttribute('playsinline', '');
   silentUnlockAudio.setAttribute('webkit-playsinline', '');
+  silentUnlockAudio.loop = true; // 關鍵：持續鎖定 iOS 媒體播放通道，使 Web Audio 不受 iPhone 實體靜音開關影響
   silentUnlockAudio.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
 
   function unlockAudioEngine() {
-    // 僅在 iOS 上啟用 silentUnlockAudio 以破除實體靜音開關
+    // 僅在 iOS 上啟用 silentUnlockAudio 破除實體靜音開關
     // Android 上切勿執行，避免 Android MediaPlayer 焦點搶奪導致主語音被消音
     if (isIOS) {
       try {
-        silentUnlockAudio.play().catch(() => {});
+        if (silentUnlockAudio.paused) {
+          silentUnlockAudio.play().catch(() => {});
+        }
       } catch (e) {}
     }
     try {
@@ -495,8 +505,8 @@ document.addEventListener('DOMContentLoaded', () => {
       e.stopPropagation();
     }
 
-    // 防穿透點擊與誤觸保護：若距離關閉第一畫面遮罩不到 800ms，徹底忽略本次點擊
-    if (Date.now() - overlayDismissedAt < 800) {
+    // 防穿透點擊保護：若距離關閉第一畫面遮罩不到 350ms，忽略本次點擊 (避免過長等待造成按鈕頓挫感)
+    if (Date.now() - overlayDismissedAt < 350) {
       return;
     }
 
@@ -540,6 +550,12 @@ document.addEventListener('DOMContentLoaded', () => {
     metronome.isMuted = !metronome.isMuted;
     if (emergencyAudio) {
       emergencyAudio.muted = metronome.isMuted;
+    }
+    if (silentUnlockAudio) {
+      silentUnlockAudio.muted = metronome.isMuted;
+    }
+    if (voiceGainNode) {
+      voiceGainNode.gain.value = metronome.isMuted ? 0 : 1.0;
     }
     if (metronome.isMuted) {
       soundIconOn.classList.add('hidden');
