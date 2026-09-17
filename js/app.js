@@ -89,7 +89,8 @@ document.addEventListener('DOMContentLoaded', () => {
   let voiceGainNode = null;
 
   function getVoiceGainNode(ctx) {
-    if (!voiceGainNode && ctx) {
+    if (!ctx) return null;
+    if (!voiceGainNode || voiceGainNode.context !== ctx) {
       voiceGainNode = ctx.createGain();
       voiceGainNode.gain.value = metronome.isMuted ? 0 : 1.0;
       voiceGainNode.connect(ctx.destination);
@@ -97,21 +98,11 @@ document.addEventListener('DOMContentLoaded', () => {
     return voiceGainNode;
   }
 
-  // 預先抓取並在背景預解碼音訊 ArrayBuffer，加快點擊就緒速度（不發聲）
+  // 預先抓取音訊 ArrayBuffer 至記憶體中（純二進位字節快取，切勿在使用者手勢前建立 AudioContext，避免導致 iOS Safari 永久消音鎖死）
   fetch('./audio/alert_119_aed.mp3')
     .then(r => r.arrayBuffer())
-    .then(async buf => {
+    .then(buf => {
       window._cachedEmergencyArrayBuffer = buf;
-      try {
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        if (AudioContext && !emergencyAudioBuffer) {
-          const tempCtx = metronome.audioCtx || new AudioContext();
-          metronome.audioCtx = tempCtx;
-          emergencyAudioBuffer = await new Promise((res, rej) => {
-            tempCtx.decodeAudioData(buf.slice(0), res, rej);
-          });
-        }
-      } catch (e) {}
     })
     .catch(() => {});
 
@@ -290,15 +281,24 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 單次播放音訊 Promise (雙軌自動回退：Web Audio -> HTML5 Audio)
+  // 單次播放音訊 (HTML5 Audio 優先 -> Web Audio 備援 -> TTS 終極備援)
+  // HTML5 Audio 在 iOS 上天然走 Media/Playback 通道，可 100% 繞過 iPhone 實體靜音開關
   async function playSingleAudioClip() {
+    try {
+      await playHtml5AudioClip();
+      return;
+    } catch (e) {
+      console.warn('HTML5 Audio 播放失敗，切換至 Web Audio 備援:', e);
+    }
+
     try {
       await playAudioBufferClip();
       return;
     } catch (e) {
-      console.warn('Web Audio 播放失敗，回退至 HTML5 Audio:', e);
+      console.warn('Web Audio 播放失敗，切換至 TTS 備援:', e);
     }
-    await playHtml5AudioClip();
+
+    await speakFallbackTTS();
   }
 
   // Web Speech API 離線備援朗讀
@@ -367,24 +367,32 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // iOS 靜音模式破除器 (透過 playsinline 循環靜音音訊鎖定 AVAudioSession Media Category)
+  // iOS 實體靜音開關破解器 (透過 1秒乾淨靜音音訊鎖定 AVAudioSession Media Category)
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-  const silentUnlockAudio = document.createElement('audio');
-  silentUnlockAudio.setAttribute('playsinline', '');
-  silentUnlockAudio.setAttribute('webkit-playsinline', '');
-  silentUnlockAudio.loop = true; // 關鍵：持續鎖定 iOS 媒體播放通道，使 Web Audio 不受 iPhone 實體靜音開關影響
-  silentUnlockAudio.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
+  const silentUnlockAudio = document.getElementById('silent-unlock-audio');
 
   function unlockAudioEngine() {
-    // 僅在 iOS 上啟用 silentUnlockAudio 破除實體靜音開關
+    // 1. iOS 16.4+ 官方標準：設定 Web Audio Session 為 Playback 模式，繞過實體靜音開關
+    if ('audioSession' in navigator) {
+      try {
+        navigator.audioSession.type = 'playback';
+      } catch (e) {}
+    }
+
+    // 2. 僅在 iOS 上啟用 silentUnlockAudio 鎖定媒體播放通道
     // Android 上切勿執行，避免 Android MediaPlayer 焦點搶奪導致主語音被消音
-    if (isIOS) {
+    if (isIOS && silentUnlockAudio) {
       try {
         if (silentUnlockAudio.paused) {
-          silentUnlockAudio.play().catch(() => {});
+          silentUnlockAudio.volume = 1.0;
+          silentUnlockAudio.muted = metronome.isMuted;
+          const p = silentUnlockAudio.play();
+          if (p !== undefined) p.catch(() => {});
         }
       } catch (e) {}
     }
+
+    // 3. 解鎖 Web Audio Context
     try {
       metronome.initAudio().catch(() => {});
     } catch (e) {}
@@ -515,9 +523,24 @@ document.addEventListener('DOMContentLoaded', () => {
     if (metronome.isRunning) {
       metronome.stop();
       updatePlayPauseUI(false);
+      // 停止節拍器時暫停 iOS 靜音循環，釋放音訊單元並節省電量
+      if (isIOS && silentUnlockAudio) {
+        try { silentUnlockAudio.pause(); } catch (e) {}
+      }
     } else {
       // 啟動節拍器時，若急救廣播語音仍在播放，立即強制停止語音，確保節拍音頻清晰無干擾
       stopEmergencyBroadcast();
+      // 在 iOS 上維持 silentUnlockAudio 播放，確保 Web Audio 提示音受 AVAudioSession Media 類別保護不被靜音
+      if (isIOS && silentUnlockAudio) {
+        try {
+          if (silentUnlockAudio.paused) {
+            silentUnlockAudio.volume = 1.0;
+            silentUnlockAudio.muted = metronome.isMuted;
+            const p = silentUnlockAudio.play();
+            if (p !== undefined) p.catch(() => {});
+          }
+        } catch (e) {}
+      }
       await metronome.start();
       updatePlayPauseUI(true);
     }
@@ -540,6 +563,9 @@ document.addEventListener('DOMContentLoaded', () => {
     resetBtn.addEventListener('click', () => {
       metronome.reset();
       updatePlayPauseUI(false);
+      if (isIOS && silentUnlockAudio) {
+        try { silentUnlockAudio.pause(); } catch (e) {}
+      }
       if (compressionCountElem) compressionCountElem.textContent = '0';
       if (timerDisplayElem) timerDisplayElem.textContent = '00:00';
     });

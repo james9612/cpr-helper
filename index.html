@@ -12,7 +12,7 @@
   <link rel="apple-touch-icon" href="./icons/icon.svg">
   <link rel="manifest" href="./manifest.webmanifest">
   <title>CPR Helper - 中華天使之翼救護訓練學會 ‧ 110 BPM 節拍器 & AED 速查</title>
-  <link rel="stylesheet" href="./css/style.css?v=3.7">
+  <link rel="stylesheet" href="./css/style.css?v=3.8">
   <style>
     /* 防禦性關鍵樣式：確保離線或快取延遲時保持深色主題、排版與防圖標巨大化 */
     :root {
@@ -344,12 +344,14 @@
 
   </div>
 
-  <!-- 急救提醒音訊 (超輕量 32KB 離線快取高音質播報，待使用者點擊啟動門時即刻發聲) -->
-  <audio id="emergency-audio" src="./audio/alert_119_aed.mp3" preload="auto" playsinline webkit-playsinline></audio>
+  <!-- 急救提醒音訊 (HTML5 原生音訊，繞過 iOS 靜音開關，使用者點擊啟動門時即刻發聲) -->
+  <audio id="emergency-audio" src="./audio/alert_119_aed.mp3" preload="auto" playsinline webkit-playsinline x-webkit-airplay="deny"></audio>
+  <!-- iOS 靜音模式破除器 (1秒乾淨靜音循環，鎖定 AVAudioSession Media Category，使 Web Audio 不受 iPhone 實體靜音開關影響) -->
+  <audio id="silent-unlock-audio" src="./audio/silence.wav" preload="auto" loop playsinline webkit-playsinline x-webkit-airplay="deny"></audio>
 
   <!-- 腳本 -->
-  <script src="./js/metronome.js?v=3.7"></script>
-  <script src="./js/app.js?v=3.7"></script>
-  <script src="./js/sw-register.js?v=3.7"></script>
+  <script src="./js/metronome.js?v=3.8"></script>
+  <script src="./js/app.js?v=3.8"></script>
+  <script src="./js/sw-register.js?v=3.8"></script>
 </body>
 </html>

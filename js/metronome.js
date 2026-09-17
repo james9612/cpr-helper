@@ -25,19 +25,30 @@ class CprMetronome {
     this.isMuted = false;
   }
 
-  // 初始化並解鎖 AudioContext
+  // 初始化並解鎖 AudioContext (相容 iOS Safari 與各大行動平台)
   async initAudio() {
-    if (!this.audioCtx) {
+    if (!this.audioCtx || this.audioCtx.state === 'closed') {
       const AudioContext = window.AudioContext || window.webkitAudioContext;
       this.audioCtx = new AudioContext();
     }
-    if (this.audioCtx.state === 'suspended') {
+    if (this.audioCtx.state !== 'running') {
       try {
         await this.audioCtx.resume();
       } catch (e) {
         console.warn('AudioContext resume error:', e);
       }
     }
+    // iOS Safari 暖機機制：以極短緩衝喚起 WebKit 輸出通道
+    try {
+      if (!this._warmedUp && this.audioCtx) {
+        this._warmedUp = true;
+        const buf = this.audioCtx.createBuffer(1, 1, 22050);
+        const src = this.audioCtx.createBufferSource();
+        src.buffer = buf;
+        src.connect(this.audioCtx.destination);
+        src.start(0);
+      }
+    } catch (e) {}
     return this.audioCtx;
   }
 
@@ -144,7 +155,7 @@ class CprMetronome {
     if (this.isRunning) return;
 
     await this.initAudio();
-    if (this.audioCtx && this.audioCtx.state === 'suspended') {
+    if (this.audioCtx && this.audioCtx.state !== 'running') {
       try {
         await this.audioCtx.resume();
       } catch (e) {}

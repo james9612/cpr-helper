@@ -1,4 +1,4 @@
-const CACHE_NAME = 'nfc-cpr-aed-v26';
+const CACHE_NAME = 'nfc-cpr-aed-v28';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -12,7 +12,8 @@ const ASSETS_TO_CACHE = [
   './images/org_logo_dark_transparent.png',
   './images/aed_pads_guide.png',
   './images/aed_pads_guide.jpg',
-  './audio/alert_119_aed.mp3'
+  './audio/alert_119_aed.mp3',
+  './audio/silence.wav'
 ];
 
 self.addEventListener('install', (event) => {
@@ -78,7 +79,11 @@ self.addEventListener('fetch', (event) => {
               headers.set('Content-Range', `bytes ${start}-${end}/${buffer.byteLength}`);
               headers.set('Content-Length', String(sliced.byteLength));
               headers.set('Accept-Ranges', 'bytes');
-              if (!headers.has('Content-Type')) {
+              if (event.request.url.includes('.mp3')) {
+                headers.set('Content-Type', 'audio/mpeg');
+              } else if (event.request.url.includes('.wav')) {
+                headers.set('Content-Type', 'audio/wav');
+              } else if (!headers.has('Content-Type')) {
                 headers.set('Content-Type', 'audio/mpeg');
               }
               return new Response(sliced, {
