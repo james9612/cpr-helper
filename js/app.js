@@ -87,11 +87,21 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentVoiceSource = null;
   let isDecodingBuffer = false;
 
-  // 預先抓取音訊 ArrayBuffer，加快解碼就緒速度
+  // 預先抓取並在背景預解碼音訊 ArrayBuffer，加快點擊就緒速度（不發聲）
   fetch('./audio/alert_119_aed.mp3')
     .then(r => r.arrayBuffer())
-    .then(buf => {
+    .then(async buf => {
       window._cachedEmergencyArrayBuffer = buf;
+      try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (AudioContext && !emergencyAudioBuffer) {
+          const tempCtx = metronome.audioCtx || new AudioContext();
+          metronome.audioCtx = tempCtx;
+          emergencyAudioBuffer = await new Promise((res, rej) => {
+            tempCtx.decodeAudioData(buf.slice(0), res, rej);
+          });
+        }
+      } catch (e) {}
     })
     .catch(() => {});
 
@@ -429,13 +439,6 @@ document.addEventListener('DOMContentLoaded', () => {
   if (tapOverlay) {
     tapOverlay.addEventListener('click', dismissTapOverlayAndStart);
     tapOverlay.addEventListener('touchend', dismissTapOverlayAndStart);
-
-    // 若在已授權環境中早已自動出聲，遮罩自動在 300ms 內平滑退場
-    setTimeout(() => {
-      if ((emergencyAudio && !emergencyAudio.paused && emergencyAudio.currentTime > 0) || isSpeaking) {
-        dismissTapOverlayAndStart();
-      }
-    }, 300);
   }
 
   activationEvents.forEach(evt => {
@@ -545,34 +548,6 @@ document.addEventListener('DOMContentLoaded', () => {
       soundIconOn.classList.remove('hidden');
       soundIconOff.classList.add('hidden');
       metronome.initAudio();
-    }
-  });
-
-  // ==========================================
-  // 頁面載入瞬間：零延遲直接嘗試自動播放急救語音 (無等待、無遮罩)
-  // ==========================================
-  function triggerImmediateBroadcast() {
-    if (hasCompletedAlert || isSpeaking) return;
-    unlockAudioEngine();
-    playEmergencyBroadcastTwice().catch(() => {
-      // 若受嚴格瀏覽器政策暫時限制，靜默維持待命狀態，於使用者任意碰觸時立刻補播
-    });
-  }
-
-  // 1. 同步立即觸發（不加 setTimeout，避免丟失使用者喚醒手勢）
-  triggerImmediateBroadcast();
-
-  // 2. window 載入完成時若尚未播報再次嘗試
-  window.addEventListener('load', () => {
-    if (!hasCompletedAlert && !isSpeaking) {
-      triggerImmediateBroadcast();
-    }
-  });
-
-  // 3. 頁面可見度切換（如從外部 NFC 應用跳轉喚起）
-  document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible' && !hasCompletedAlert && !isSpeaking) {
-      triggerImmediateBroadcast();
     }
   });
 });

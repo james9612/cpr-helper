@@ -12,7 +12,7 @@
   <link rel="apple-touch-icon" href="./icons/icon.svg">
   <link rel="manifest" href="./manifest.webmanifest">
   <title>CPR Helper - 中華天使之翼救護訓練學會 ‧ 110 BPM 節拍器 & AED 速查</title>
-  <link rel="stylesheet" href="./css/style.css?v=3.5">
+  <link rel="stylesheet" href="./css/style.css?v=3.6">
   <style>
     /* 防禦性關鍵樣式：確保離線或快取延遲時保持深色主題、排版與防圖標巨大化 */
     :root {
@@ -344,25 +344,12 @@
 
   </div>
 
-  <!-- 急救提醒音訊 (超輕量 32KB 離線快取高音質播報，支援進入網頁即刻自動播放) -->
-  <audio id="emergency-audio" src="./audio/alert_119_aed.mp3" autoplay preload="auto" playsinline webkit-playsinline></audio>
-  <script>
-    // 進入網頁第一時間以最高優先級同步嘗試直接播放（零延遲）
-    (function() {
-      try {
-        var a = document.getElementById('emergency-audio');
-        if (a) {
-          a.volume = 1.0;
-          var p = a.play();
-          if (p && p.catch) { p.catch(function() {}); }
-        }
-      } catch (e) {}
-    })();
-  </script>
+  <!-- 急救提醒音訊 (超輕量 32KB 離線快取高音質播報，待使用者點擊啟動門時即刻發聲) -->
+  <audio id="emergency-audio" src="./audio/alert_119_aed.mp3" preload="auto" playsinline webkit-playsinline></audio>
 
   <!-- 腳本 -->
-  <script src="./js/metronome.js?v=3.5"></script>
-  <script src="./js/app.js?v=3.5"></script>
-  <script src="./js/sw-register.js?v=3.5"></script>
+  <script src="./js/metronome.js?v=3.6"></script>
+  <script src="./js/app.js?v=3.6"></script>
+  <script src="./js/sw-register.js?v=3.6"></script>
 </body>
 </html>
