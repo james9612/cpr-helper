@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>急救小助手跳轉中...</title>
+  <!-- 雙重保障 1: 0 秒自動跳轉 -->
+  <meta http-equiv="refresh" content="0; url=https://ANGEL-WINGS-EMT.github.io/cpr-helper/">
+  <script>
+    // 雙重保障 2: 毫秒級無痕跳轉（保留可能帶有的參數）
+    const targetUrl = "https://ANGEL-WINGS-EMT.github.io/cpr-helper/" + window.location.search + window.location.hash;
+    window.location.replace(targetUrl);
+  </script>
+  <style>
+    body {
+      background-color: #070a11;
+      color: #ffffff;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+      box-sizing: border-box;
+    }
+    .card {
+      background: #111827;
+      border: 1px solid #374151;
+      border-radius: 16px;
+      padding: 24px;
+      max-width: 360px;
+      width: 100%;
+    }
+    .icon {
+      font-size: 3rem;
+      margin-bottom: 12px;
+      animation: pulse 1s infinite alternate;
+    }
+    @keyframes pulse {
+      from { transform: scale(1); }
+      to { transform: scale(1.15); }
+    }
+    h2 {
+      margin: 0 0 8px 0;
+      font-size: 1.3rem;
+    }
+    p {
+      color: #9ca3af;
+      font-size: 0.9rem;
+      margin-bottom: 20px;
+    }
+    .btn {
+      display: block;
+      background: #ef4444;
+      color: #ffffff;
+      font-weight: bold;
+      text-decoration: none;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="icon">🚑</div>
+    <h2>正在前往急救小助手...</h2>
+    <p>系統正在為您導向最新版本。若無自動跳轉，請點擊下方按鈕：</p>
+    <a class="btn" href="https://ANGEL-WINGS-EMT.github.io/cpr-helper/">立即開啟 CPR Helper</a>
+  </div>
+</body>
+</html>
